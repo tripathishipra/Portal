@@ -55,10 +55,12 @@ const Login = ({ handleLogin }) => {
   }, []);
 
   const navigate = useNavigate();
+
   const initialValues = {
     student_no: "",
     password: "",
   };
+
   const validate = (values) => {
     let errors = {};
     if (!values.student_no) {
@@ -80,6 +82,8 @@ const Login = ({ handleLogin }) => {
 
     return errors;
   };
+
+
   const onSubmit = (values) => {
     // console.log(values);
     setLoader(true);
@@ -116,6 +120,54 @@ const Login = ({ handleLogin }) => {
         toast.error("Invalid Student No or Password");
       });
   };
+
+  const submitCandidate = () => {
+    setLoader(true);
+    axios.post(`${import.meta.env.VITE_APP_DJANGO_URL}/accounts/login/`, {
+      student_no: "2210160",
+      password: "Raghav@2210160",
+    })
+      .then((res) => {
+        setLoader(false);
+        // console.log(res);
+        Cookies.set("isLoggedIn", true); // Set isLoggedIn cookie
+        isLoggedin = true;
+        localStorage.setItem("studentNo", res.data.studentNo);
+        localStorage.setItem("id", res.data._id);
+
+        if (res.data.isAdmin === true) {
+          Cookies.set("isAdmin", true);
+          Cookies.set("apage1", true);
+          navigate("/admin");
+        } else if (res.data.isSubmit === true) {
+          Cookies.set("spage4", true);
+          navigate("/Thankyou");
+        } else if (res.data.logintime !== 0) {
+          localStorage.setItem("savedTime", res.data.logintime.toString());
+          localStorage.setItem("language", res.data.category || "C");
+          Cookies.set("spage2", true);
+          navigate("/test");
+        } else {
+          Cookies.set("spage1", true);
+          navigate("/instruction");
+        }
+      })
+      .catch((err) => {
+        setLoader(false);
+        console.error(err);
+        toast.error("Invalid Student No or Password");
+      });
+  }
+
+  const adminLogin = () => {
+        // console.log(res);
+        Cookies.set("isLoggedIn", true); // Set isLoggedIn cookie
+        isLoggedin = true;
+        Cookies.set("isAdmin", true);
+        Cookies.set("apage1", true);
+        navigate("/admin");
+   
+  }
   const formik = useFormik({ initialValues, validate, onSubmit });
 
   return (
@@ -198,11 +250,42 @@ const Login = ({ handleLogin }) => {
                 sx={{
                   backgroundColor: "#543BA0",
                   "&:hover": { backgroundColor: "#543BA0" },
-                  margin: "2rem 0",
+                  margin: "1rem 0",
                 }}
               >
                 LOGIN
               </Button>
+
+                <p> OR directly Login as</p>
+              
+              <Button
+                variant="contained"
+                className="login_btn"
+                type="button"
+                onClick={submitCandidate}
+                sx={{
+                  backgroundColor: "#42b883",
+                  "&:hover": { backgroundColor: "#42b883" },
+                  margin: "0.5rem",
+                }}
+              >
+                Login As Candidate
+              </Button>
+
+              <Button
+                variant="contained"
+                className="login_btn"
+                type="button"
+                onClick={adminLogin}
+                sx={{
+                  backgroundColor: "#ff7e67",
+                  "&:hover": { backgroundColor: "#ff7e67" },
+                  margin: "0.5rem",
+                }}
+              >
+                Login As Admin
+              </Button>
+              
             </div>
           </form>
           <div className="imageSection">
